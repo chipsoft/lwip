@@ -2439,6 +2439,22 @@ mdns_resp_remove_netif(struct netif *netif)
 
   sys_untimeout(mdns_probe_and_announce, netif);
 
+  /* Cancel all pending multicast timers before freeing mdns struct.
+   * mdns_resp_remove_netif() clears client_data to NULL; any timer callback
+   * that fires after this point will get NULL from netif_mdns_data() and crash.
+   * These timers are registered via mdns_set_timeout() in mdns_out.c and are
+   * NOT cancelled by the original lwIP implementation. */
+  sys_untimeout(mdns_multicast_timeout_reset_ipv4, netif);
+  sys_untimeout(mdns_multicast_probe_timeout_reset_ipv4, netif);
+  sys_untimeout(mdns_multicast_timeout_25ttl_reset_ipv4, netif);
+  sys_untimeout(mdns_send_multicast_msg_delayed_ipv4, netif);
+#if LWIP_IPV6
+  sys_untimeout(mdns_multicast_timeout_reset_ipv6, netif);
+  sys_untimeout(mdns_multicast_probe_timeout_reset_ipv6, netif);
+  sys_untimeout(mdns_multicast_timeout_25ttl_reset_ipv6, netif);
+  sys_untimeout(mdns_send_multicast_msg_delayed_ipv6, netif);
+#endif /* LWIP_IPV6 */
+
   for (i = 0; i < MDNS_MAX_SERVICES; i++) {
     struct mdns_service *service = mdns->services[i];
     if (service) {
