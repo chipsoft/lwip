@@ -595,8 +595,12 @@ sys_check_core_locking(void)
     TaskHandle_t current_thread = xTaskGetCurrentTaskHandle();
 
 #if LWIP_TCPIP_CORE_LOCKING
+    /* Allow calls from either:
+     * 1. Any thread that holds the core lock, OR
+     * 2. The tcpip thread itself (callbacks don't need to acquire the lock) */
     LWIP_ASSERT("Function called without core lock",
-                current_thread == lwip_core_lock_holder_thread && lwip_core_lock_count > 0);
+                (current_thread == lwip_core_lock_holder_thread && lwip_core_lock_count > 0) ||
+                (current_thread == lwip_tcpip_thread));
 #else /* LWIP_TCPIP_CORE_LOCKING */
     LWIP_ASSERT("Function called from wrong thread", current_thread == lwip_tcpip_thread);
 #endif /* LWIP_TCPIP_CORE_LOCKING */

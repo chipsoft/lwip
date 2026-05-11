@@ -74,7 +74,9 @@
  *  @internal Keep this number at least 2, otherwise it might
  *  run out instantly if the timeout occurs directly after a request.
  */
+#ifndef ARP_MAXPENDING
 #define ARP_MAXPENDING 5
+#endif
 
 /** ARP states */
 enum etharp_state {
